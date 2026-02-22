@@ -16,6 +16,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: 'StakeHub - The Social Staking Arena',
   description: 'The first Social Staking protocol built for Monad. Stake on outcomes, build reputation, win together.',
   keywords: ['Monad', 'Farcaster', 'Social Staking', 'Prediction Markets', 'Parimutuel', 'DeFi', 'SocialFi'],
