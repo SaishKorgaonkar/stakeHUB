@@ -32,10 +32,10 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <h1 className="text-3xl font-bold uppercase tracking-tight hover:translate-x-[2px] hover:translate-y-[2px] transition-transform">
-              STAKEHUB
-            </h1>
+          <Link href="/" className="flex items-center group">
+            <span className="text-2xl font-bold uppercase tracking-tight group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-transform">
+              Stake<span className="bg-yellow border-2 border-black px-1">HUB</span>
+            </span>
           </Link>
 
           {/* Navigation Links */}
@@ -73,9 +73,8 @@ export function Navbar() {
             {address && (
               <Link href="/hub">
                 <div
-                  className={`px-3 py-2 border-3 border-black font-bold text-sm cursor-pointer hover:translate-x-[2px] hover:translate-y-[2px] transition-transform ${
-                    hasFeeDiscount ? 'bg-lime' : 'bg-yellow'
-                  }`}
+                  className={`px-3 py-2 border-3 border-black font-bold text-sm cursor-pointer hover:translate-x-[2px] hover:translate-y-[2px] transition-transform ${hasFeeDiscount ? 'bg-lime' : 'bg-yellow'
+                    }`}
                 >
                   <span className="font-mono">{userHubBalance.toFixed(0)}</span> $HUB
                   {hasFeeDiscount && <span className="ml-2">✓</span>}

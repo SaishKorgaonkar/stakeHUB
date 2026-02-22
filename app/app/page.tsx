@@ -28,7 +28,7 @@ export default function LandingPage() {
     setIsCheckingProfile(true);
     try {
       const response = await fetch(`/api/profile/${walletAddress}`);
-      
+
       if (response.ok) {
         router.push('/arenas');
       } else {
@@ -49,8 +49,56 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-offwhite">
+      {/* Landing Navbar */}
+      <header className="bg-white border-b-4 border-black sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-18 py-4">
+          {/* Logo */}
+          <a href="#hero" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            className="flex items-center gap-2 group">
+            <span className="text-2xl font-bold uppercase tracking-tight group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-transform">
+              Stake<span className="bg-yellow border-2 border-black px-1">HUB</span>
+            </span>
+          </a>
+
+          {/* Nav Links — smooth scroll */}
+          <nav className="hidden md:flex items-center gap-8">
+            {[
+              { label: 'Features', href: '#features' },
+              { label: 'How It Works', href: '#how-it-works' },
+              { label: 'Why StakeHub', href: '#why' },
+              { label: 'Tech', href: '#tech' },
+            ].map(({ label, href }) => (
+              <a
+                key={href}
+                href={href}
+                onClick={e => {
+                  e.preventDefault();
+                  document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="font-bold uppercase text-sm hover:bg-yellow hover:px-2 transition-all border-b-2 border-transparent hover:border-black"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+
+          {/* CTA */}
+          <div className="flex items-center gap-3">
+            {!isConnected ? (
+              <CustomConnectButton />
+            ) : (
+              <Link href="/arenas">
+                <button className="px-5 py-2 bg-yellow border-3 border-black font-bold uppercase text-sm brutal-shadow hover:translate-x-[2px] hover:translate-y-[2px] transition-transform">
+                  Enter Arena →
+                </button>
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section with Live Activity */}
-      <section className="border-b-4 border-black bg-white">
+      <section id="hero" className="border-b-4 border-black bg-white">
         <div className="max-w-7xl mx-auto px-6 py-24 md:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
             {/* Main Hero Content */}
@@ -58,20 +106,20 @@ export default function LandingPage() {
               <div className="mb-6 inline-block bg-yellow border-3 border-black px-4 py-2">
                 <span className="font-bold uppercase text-sm">Built on Monad • Powered by Farcaster</span>
               </div>
-              
+
               <h1 className="text-5xl md:text-7xl font-bold uppercase mb-6 leading-tight tracking-tight">
                 The Social Staking<br />
                 Arena.
               </h1>
-              
+
               <p className="text-xl md:text-2xl font-bold mb-6 leading-relaxed">
                 The first Social Staking protocol built for the Monad speed-run.
               </p>
-              
+
               <p className="text-lg md:text-xl mb-8 max-w-2xl leading-relaxed">
                 Back your friends, stake on creator challenges, and build an on-chain reputation that actually matters. <span className="font-bold">No house, no limits</span>—just the Arena.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row items-start gap-4 mb-8">
                 {!isConnected ? (
                   <CustomConnectButton />
@@ -103,8 +151,8 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardBody className="p-0 max-h-96 overflow-hidden">
                   {liveActivity.map((activity, i) => (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className="p-4 border-b-3 border-black hover:bg-yellow transition-colors"
                     >
                       <p className="text-sm mb-1 font-bold">
@@ -130,14 +178,14 @@ export default function LandingPage() {
       </section>
 
       {/* Why StakeHub? - Technical Differentiation */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
+      <section id="features" className="max-w-7xl mx-auto px-6 py-24">
         <h2 className="text-4xl md:text-5xl font-bold uppercase text-center mb-6">
           Why StakeHub?
         </h2>
         <p className="text-xl text-center mb-16 max-w-3xl mx-auto">
           Built on bleeding-edge infrastructure. Designed for speed, social, and transparency.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card className="bg-white hover:brutal-shadow-hover transition-all">
             <CardBody className="p-8">
@@ -181,14 +229,15 @@ export default function LandingPage() {
       </section>
 
       {/* The Alpha Loop - How it Works */}
-      <section className="max-w-7xl mx-auto px-6 py-24 border-t-4 border-black">
+      <section id="how-it-works" className="max-w-7xl mx-auto px-6 py-24 border-t-4 border-black">
+
         <h2 className="text-4xl md:text-5xl font-bold uppercase text-center mb-6">
           The Alpha Loop
         </h2>
         <p className="text-xl text-center mb-16 max-w-3xl mx-auto">
           Four steps from conviction to claim. Simple, transparent, on-chain.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <Card className="bg-white hover:brutal-shadow-hover transition-all">
             <CardBody className="p-8">
@@ -241,14 +290,14 @@ export default function LandingPage() {
       </section>
 
       {/* The Arena Module */}
-      <section className="max-w-7xl mx-auto px-6 py-24 border-t-4 border-black bg-white">
+      <section id="why" className="max-w-7xl mx-auto px-6 py-24 border-t-4 border-black bg-white">
         <h2 className="text-4xl md:text-5xl font-bold uppercase text-center mb-6">
           The "Arena" Explained
         </h2>
         <p className="text-xl text-center mb-16 max-w-3xl mx-auto">
           No House. No Limits. Just pure parimutuel dynamics.
         </p>
-        
+
         <div className="max-w-5xl mx-auto">
           <Card className="bg-yellow mb-12">
             <CardBody className="p-10">
@@ -300,14 +349,15 @@ export default function LandingPage() {
       </section>
 
       {/* Arena Visibility Modes */}
-      <section className="max-w-7xl mx-auto px-6 py-24 border-t-4 border-black">
+      <section id="tech" className="max-w-7xl mx-auto px-6 py-24 border-t-4 border-black">
+
         <h2 className="text-4xl md:text-5xl font-bold uppercase text-center mb-6">
-         Choose Who Gets In
+          Choose Who Gets In
         </h2>
         <p className="text-xl text-center mb-16 max-w-3xl mx-auto">
           Control visibility. Public, followers-only, or invite-only — you decide the Arena rules.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card className="bg-white hover:brutal-shadow-hover transition-all">
             <CardBody className="p-8 text-center">
@@ -355,7 +405,7 @@ export default function LandingPage() {
         <p className="text-xl text-center mb-16 max-w-3xl mx-auto">
           Stake $HUB to reduce fees, unlock governance, and gain visibility boosts.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <Card className="bg-yellow">
             <CardBody className="p-8 text-center">
@@ -396,7 +446,7 @@ export default function LandingPage() {
           Ready to Enter<br />
           The Arena?
         </h2>
-        
+
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
           {!isConnected ? (
             <>
@@ -418,7 +468,7 @@ export default function LandingPage() {
         </div>
 
         <p className="text-sm text-gray-600 max-w-2xl mx-auto">
-          Built for the <span className="font-bold">Monad Blitz Hackathon</span>. 
+          Built for the <span className="font-bold">Monad Blitz Hackathon</span>.
           Powered by Monad's Parallel EVM and Farcaster's social graph.
         </p>
       </section>
@@ -435,7 +485,7 @@ export default function LandingPage() {
                 Stake on outcomes. Build reputation. Win together.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-bold text-lg uppercase mb-4">Quick Links</h4>
               <div className="space-y-3">
@@ -491,7 +541,7 @@ export default function LandingPage() {
                   <span className="text-xs uppercase font-bold text-gray-400">Pull-over-Push Security</span>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-500">
                 © 2026 StakeHub. Built for Monad Blitz.
               </p>
