@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-space-grotesk: 'Space Grotesk', sans-serif;
+  --font-ibm-plex-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-space-grotesk);
+  background: #FAFAF8;
+  color: #000000;
+}
+
+/* Neobrutalism Base Styles */
+.brutal-border {
+  border: 3px solid #000000;
+  border-radius: 0;
+}
+
+.brutal-shadow {
+  box-shadow: 4px 4px 0px #000000;
+}
+
+.brutal-shadow-sm {
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Button Press Effect */
+button:active,
+.btn-press:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-left: 2px solid #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 2px solid #F0F0F0;
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+  border: 3px solid #000000;
+  border-radius: 0;
+  background: #FFFFFF;
+  padding: 12px;
+  font-family: var(--font-space-grotesk);
+  font-size: 16px;
+  box-shadow: 3px 3px 0px #000000;
+  transition: box-shadow 0.1s, transform 0.1s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Animations */
+@keyframes slideUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUpIn 0.3s ease-out;
+}
+
+/* Loading Skeleton */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #F0F0F0;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Text Shadow for Landing Page */
+.brutal-text-shadow {
+  text-shadow: 6px 6px 0px #000000;
+}
+
+/* RainbowKit Custom Neobrutalism Styling - Force override everything */
+/* Hide the container styling */
+div[data-testid="rk-connect-button"],
+div[data-testid="rk-account-button"] {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Style ALL buttons inside RainbowKit container */
+div[data-testid="rk-connect-button"] button,
+div[data-testid="rk-connect-button"] > button,
+div[data-testid="rk-connect-button"] * button,
+button[aria-label="Connect Wallet"],
+[data-testid="rk-connect-button"] [type="button"] {
+  background: #FFE500 !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  padding: 16px 32px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 18px !important;
+  font-family: var(--font-space-grotesk) !important;
+  transition: all 0.1s !important;
+  min-height: auto !important;
+}
+
+div[data-testid="rk-connect-button"] button:hover,
+div[data-testid="rk-connect-button"] > button:hover,
+button[aria-label="Connect Wallet"]:hover {
+  background: #FFE500 !important;
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+/* Account button styling */
+div[data-testid="rk-account-button"] button,
+div[data-testid="rk-account-button"] > button,
+div[data-testid="rk-account-button"] * button {
+  background: #FFE500 !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  padding: 16px 32px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 18px !important;
+  font-family: var(--font-space-grotesk) !important;
+}
+
+div[data-testid="rk-account-button"] button:hover {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+/* Override any nested elements */
+[data-testid="rk-connect-button"] span,
+[data-testid="rk-account-button"] span {
+  font-family: var(--font-space-grotesk) !important;
+  font-weight: 700 !important;
+}
+
+/* RainbowKit Modal Styling */
+div[role="dialog"] {
+  border: 4px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: 8px 8px 0px #000000 !important;
+}
+
+/* Wallet option buttons in modal */
+div[role="dialog"] button {
+  border: 3px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  background: #FFFFFF !important;
+}
+
+div[role="dialog"] button:hover {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+

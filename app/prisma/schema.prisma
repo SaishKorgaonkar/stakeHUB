@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(cuid())
+  walletAddress       String   @unique
+  fid                 Int?     @unique
+  username            String?
+  pfpUrl              String?
+  notificationToken   String?
+  notificationUrl     String?
+  reputationScore     Int      @default(0)
+  totalWon            BigInt   @default(0)
+  totalStaked         BigInt   @default(0)
+  arenasCreated       Int      @default(0)
+  stakes              Stake[]
+  createdArenas       Arena[]
+  reputationLogs      ReputationLog[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([fid])
+  @@index([walletAddress])
+}
+
+model Arena {
+  id                  String   @id @default(cuid())
+  address             String   @unique
+  creatorAddress      String
+  creator             User     @relation(fields: [creatorAddress], references: [walletAddress])
+  title               String
+  description         String?
+  ipfsCid             String
+  outcomes            String[]
+  deadline            DateTime
+  state               ArenaState @default(OPEN)
+  totalPool           BigInt   @default(0)
+  winningOutcome      Int?
+  resolvedAt          DateTime?
+  stakes              Stake[]
+  winnings            Winnings[]
+  blockNumber         BigInt
+  transactionHash     String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([state])
+  @@index([creatorAddress])
+  @@index([createdAt])
+}
+
+model Stake {
+  id                  String   @id @default(cuid())
+  arenaAddress        String
+  arena               Arena    @relation(fields: [arenaAddress], references: [address])
+  stakerAddress       String
+  staker              User     @relation(fields: [stakerAddress], references: [walletAddress])
+  outcomeIndex        Int
+  amount              BigInt
+  claimed             Boolean  @default(false)
+  blockNumber         BigInt
+  transactionHash     String
+  createdAt           DateTime @default(now())
+
+  @@index([arenaAddress])
+  @@index([stakerAddress])
+  @@index([arenaAddress, stakerAddress])
+}
+
+model Winnings {
+  id                  String   @id @default(cuid())
+  arenaAddress        String
+  arena               Arena    @relation(fields: [arenaAddress], references: [address])
+  winnerAddress       String
+  amount              BigInt
+  claimed             Boolean  @default(false)
+  claimedAt           DateTime?
+  transactionHash     String?
+  createdAt           DateTime @default(now())
+
+  @@index([arenaAddress])
+  @@index([winnerAddress])
+  @@index([claimed])
+}
+
+model ReputationLog {
+  id                  String   @id @default(cuid())
+  userAddress         String
+  user                User     @relation(fields: [userAddress], references: [walletAddress])
+  points              Int
+  reason              String
+  arenaAddress        String?
+  createdAt           DateTime @default(now())
+
+  @@index([userAddress])
+  @@index([createdAt])
+}
+
+model IndexerCheckpoint {
+  id                  String   @id @default(cuid())
+  contractAddress     String   @unique
+  lastBlockNumber     BigInt
+  lastBlockTimestamp  DateTime
+  updatedAt           DateTime @updatedAt
+}
+
+enum ArenaState {
+  OPEN
+  LOCKED
+  RESOLVED
+  CANCELLED
+}

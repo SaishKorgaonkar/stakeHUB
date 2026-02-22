@@ -1,0 +1,16 @@
+{
+  "name": "StakeHub Arena",
+  "iconUrl": "https://stakehub.xyz/icon.png",
+  "homeUrl": "https://stakehub.xyz",
+  "webhookUrl": "https://stakehub.xyz/api/farcaster/webhook",
+  "description": "Parimutuel prediction markets on Monad with 0.4s confirmation",
+  "version": "1.0.0",
+  "images": {
+    "icon": "https://stakehub.xyz/icon.png",
+    "splash": "https://stakehub.xyz/splash.png"
+  },
+  "permissions": [
+    "wallet",
+    "notifications"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "stakehub",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "app",
+    "indexer"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:app\" \"npm run dev:indexer\"",
+    "dev:app": "npm run dev --workspace=app",
+    "dev:indexer": "npm run dev --workspace=indexer",
+    "build": "npm run build --workspace=app",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}
