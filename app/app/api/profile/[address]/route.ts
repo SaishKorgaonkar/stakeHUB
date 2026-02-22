@@ -57,9 +57,7 @@ export async function GET(
           totalStaked: newUser.totalStaked.toString(),
           stakes: [],
           createdArenas: [],
-          wins: 0,
-          losses: 0,
-          pending: 0,
+          stats: { wins: 0, losses: 0, winRate: 0 },
         }),
         {
           status: 200,

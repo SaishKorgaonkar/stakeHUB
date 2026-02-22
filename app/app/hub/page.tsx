@@ -75,18 +75,24 @@ export default function HUBTokenPage() {
     }
 
     try {
+      toast.info('📝 Please sign the claim transaction in MetaMask...');
+      
       writeContract({
         address: HUB_TOKEN_ADDRESS,
         abi: HUB_TOKEN_ABI,
         functionName: 'claimFaucet',
       });
-      toast.success('Claim transaction submitted!');
+      toast.success('✅ Claim transaction submitted!');
       setTimeout(() => {
         refetchBalance();
         refetchCooldown();
       }, 2000);
     } catch (error: any) {
-      toast.error(error.message || 'Claim failed');
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction cancelled');
+      } else {
+        toast.error(error.message || 'Claim failed');
+      }
     }
   }
 
@@ -102,19 +108,25 @@ export default function HUBTokenPage() {
     }
 
     try {
+      toast.info('📝 Please sign the swap transaction in MetaMask...');
+      
       writeContract({
         address: HUB_TOKEN_ADDRESS,
         abi: HUB_TOKEN_ABI,
         functionName: 'swapMONForHUB',
         value: parseEther(swapAmount),
       });
-      toast.success('Swap transaction submitted!');
+      toast.success('✅ Swap transaction submitted!');
       setTimeout(() => {
         refetchBalance();
         setSwapAmount('');
       }, 2000);
     } catch (error: any) {
-      toast.error(error.message || 'Swap failed');
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction cancelled');
+      } else {
+        toast.error(error.message || 'Swap failed');
+      }
     }
   }
 

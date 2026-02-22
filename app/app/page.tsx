@@ -7,6 +7,7 @@ import { useAccount } from 'wagmi';
 import { CustomConnectButton } from '@/components/CustomConnectButton';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { toast } from 'sonner';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -27,20 +28,39 @@ export default function LandingPage() {
   async function checkAndCreateProfile(walletAddress: string) {
     setIsCheckingProfile(true);
     try {
+      toast.loading('Setting up your account...', { id: 'profile-check' });
+      
       const response = await fetch(`/api/profile/${walletAddress}`);
 
-      if (response.ok) {
-        router.push('/arenas');
-      } else {
+      if (!response.ok) {
+        // Create user profile
         await fetch('/api/users/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ walletAddress }),
         });
-        router.push('/arenas');
+        
+        // Auto-fund new user for demo
+        toast.loading('Funding your wallet with test MON...', { id: 'profile-check' });
+        const faucetRes = await fetch('/api/faucet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: walletAddress }),
+        });
+        
+        if (faucetRes.ok) {
+          const faucetData = await faucetRes.json();
+          toast.success(`✅ ${faucetData.amount} MON added to your wallet!`, { id: 'profile-check' });
+        }
+      } else {
+        toast.dismiss('profile-check');
       }
+      
+      // Navigate to arenas
+      setTimeout(() => router.push('/arenas'), 500);
     } catch (error) {
       console.error('Error checking profile:', error);
+      toast.error('Setup error, redirecting anyway...', { id: 'profile-check' });
       router.push('/arenas');
     } finally {
       setIsCheckingProfile(false);

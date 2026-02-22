@@ -58,7 +58,15 @@ export default function ArenaPage() {
 
 
   const { writeContract, data: hash, isPending } = useWriteContract();
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: isConfirming, isSuccess: txSuccess } = useWaitForTransactionReceipt({ hash });
+
+  // Immediately refetch when a tx confirms so UI stays fresh without manual reload
+  useEffect(() => {
+    if (txSuccess) {
+      fetchArena();
+      setTimeout(fetchArena, 3500); // second fetch after indexer has processed the event
+    }
+  }, [txSuccess]);
 
   // Read user's stakes
   const { data: userStake } = useReadContract({
@@ -135,6 +143,8 @@ export default function ArenaPage() {
     }
 
     try {
+      toast.info('📝 Please sign the transaction in MetaMask...');
+
       writeContract({
         address,
         abi: ARENA_ABI,
@@ -143,36 +153,52 @@ export default function ArenaPage() {
         value: parseEther(stakeAmount),
       });
 
-      toast.success('Transaction submitted! ⚡ Confirming in ~0.4s');
+      toast.success('✅ Transaction submitted! Confirming in ~0.4s...');
     } catch (error: any) {
-      toast.error(error.message || 'Transaction failed');
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction cancelled');
+      } else {
+        toast.error(error.message || 'Transaction failed');
+      }
     }
   }
 
   async function handleClaim() {
     try {
+      toast.info('📝 Please sign the claim transaction in MetaMask...');
+
       writeContract({
         address,
         abi: ARENA_ABI,
         functionName: 'claim',
       });
-      toast.success('Claim transaction submitted!');
+      toast.success('✅ Claim transaction submitted!');
     } catch (error: any) {
-      toast.error(error.message || 'Claim failed');
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction cancelled');
+      } else {
+        toast.error(error.message || 'Claim failed');
+      }
     }
   }
 
   async function handleResolve(winningOutcomeIndex: number) {
     try {
+      toast.info('📝 Please sign the resolve transaction in MetaMask...');
+
       writeContract({
         address,
         abi: ARENA_ABI,
         functionName: 'resolve',
         args: [winningOutcomeIndex],
       });
-      toast.success(`Resolving with outcome: ${arena?.outcomes[winningOutcomeIndex]} ⚡`);
+      toast.success(`✅ Resolving with outcome: ${arena?.outcomes[winningOutcomeIndex]} ⚡`);
     } catch (error: any) {
-      toast.error(error.message || 'Resolve failed');
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction cancelled');
+      } else {
+        toast.error(error.message || 'Resolve failed');
+      }
     }
   }
 

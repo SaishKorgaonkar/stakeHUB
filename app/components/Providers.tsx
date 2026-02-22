@@ -7,6 +7,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { config } from '@/lib/wagmi';
 import { ReactNode, useState } from 'react';
 import { FarcasterProvider } from '@/lib/farcaster-sdk';
+import { DemoBanner } from './DemoBanner';
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: ReactNode }) {
           })}
         >
           <FarcasterProvider>
+            <DemoBanner />
             {children}
           </FarcasterProvider>
         </RainbowKitProvider>

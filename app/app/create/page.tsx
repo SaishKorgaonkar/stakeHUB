@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -37,6 +37,17 @@ export default function CreateArenaPage() {
 
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  // Redirect after tx confirms — wait 6s so the indexer has time to write to DB
+  useEffect(() => {
+    if (!isSuccess) return;
+    if (isPrivate) {
+      toast.success('🔒 Private arena created! Share the invite code with participants.');
+    } else {
+      toast.success('✅ Arena created! Redirecting in a moment...', { id: 'redirect' });
+      setTimeout(() => router.push('/arenas'), 6000);
+    }
+  }, [isSuccess]);
 
   async function uploadToIPFS() {
     const metadata = {
@@ -90,11 +101,14 @@ export default function CreateArenaPage() {
       setUploading(true);
 
       // Upload metadata to IPFS
+      toast.loading('Uploading metadata to IPFS...', { id: 'create-arena' });
       const ipfsCid = await uploadToIPFS();
-      toast.success('Metadata uploaded to IPFS ✓');
+      toast.success('✅ Metadata uploaded to IPFS', { id: 'create-arena' });
 
       // Create arena on-chain
       const deadlineTimestamp = BigInt(Math.floor(deadlineDate.getTime() / 1000));
+
+      toast.info('📝 Please sign the arena creation in MetaMask...', { id: 'create-arena' });
 
       writeContract({
         address: ARENA_FACTORY_ADDRESS,
@@ -103,23 +117,19 @@ export default function CreateArenaPage() {
         args: [ipfsCid, [outcome1, outcome2], deadlineTimestamp],
       });
 
-      toast.success('Arena deployment transaction submitted! ⚡');
+      toast.success('✅ Arena deployment submitted! Confirming in ~0.4s...', { id: 'create-arena' });
     } catch (error: any) {
       console.error('Create arena error:', error);
-      toast.error(error.message || 'Failed to create arena');
+      if (error.message.includes('User rejected')) {
+        toast.error('Transaction cancelled', { id: 'create-arena' });
+      } else {
+        toast.error(error.message || 'Failed to create arena', { id: 'create-arena' });
+      }
     } finally {
       setUploading(false);
     }
   }
 
-  // Save invite code to DB when arena creation succeeds
-  if (isSuccess && isPrivate) {
-    // We'll save the invite code via the arenas list after the indexer picks it up
-    toast.success('🔒 Private arena created! Share the invite code below.');
-  } else if (isSuccess) {
-    toast.success('Arena created successfully! 🎉');
-    setTimeout(() => router.push('/arenas'), 2000);
-  }
 
   return (
     <ProtectedRoute>

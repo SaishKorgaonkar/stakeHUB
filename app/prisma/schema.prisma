@@ -48,7 +48,7 @@ model Arena {
   blockNumber         BigInt
   transactionHash     String
   isPrivate           Boolean  @default(false)
-  inviteCode          String?  @unique
+  inviteCode          String?
   invites             ArenaInvite[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
