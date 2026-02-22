@@ -24,8 +24,9 @@ export async function getUserFollowing(fid: number, limit = 100) {
   try {
     const response = await neynarClient.fetchUserFollowing(fid, {
       limit,
-    });
-    return response.users;
+    }) as any;
+    // The Neynar SDK FollowResponse wraps users in different shapes across versions
+    return response.users ?? response.result?.users ?? [];
   } catch (error) {
     console.error('Error fetching following:', error);
     return [];

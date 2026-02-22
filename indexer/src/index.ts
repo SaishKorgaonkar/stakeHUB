@@ -1,8 +1,10 @@
 import { createPublicClient, http, parseAbiItem, Log } from 'viem';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import { resolve } from 'path';
 
-dotenv.config({ path: '../.env' });
+// npm run dev always runs from indexer/ (where package.json is), so .env is in cwd
+dotenv.config({ path: resolve(process.cwd(), '.env') });
 
 const prisma = new PrismaClient();
 
@@ -10,6 +12,7 @@ const prisma = new PrismaClient();
 const monadTestnet = {
   id: 10143,
   name: 'Monad Testnet',
+  nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
   rpcUrls: {
     default: {
       http: [process.env.MONAD_RPC_URL || 'https://testnet-rpc.monad.xyz'],
@@ -76,7 +79,7 @@ async function processArenaCreated(log: Log) {
     const { arenaAddress, creator, ipfsCid, deadline } = args;
 
     // Fetch arena details from chain
-    const [state, totalPool, outcomesCount] = await Promise.all([
+    const [state, totalPool, outcomeLabels] = await Promise.all([
       client.readContract({
         address: arenaAddress,
         abi: [{ type: 'function', name: 'state', inputs: [], outputs: [{ type: 'uint8' }], stateMutability: 'view' }],
@@ -89,7 +92,7 @@ async function processArenaCreated(log: Log) {
       }),
       // Fetch outcomes by trying to read each index until it fails
       (async () => {
-        const outcomes = [];
+        const outcomes: string[] = [];
         for (let i = 0; i < 10; i++) {
           try {
             const outcome = await client.readContract({
@@ -109,7 +112,9 @@ async function processArenaCreated(log: Log) {
               functionName: 'outcomes',
               args: [BigInt(i)],
             }) as any;
-            outcomes.push(outcome.label);
+            // viem returns tuple as array [label, totalStaked] or object with named fields
+            const label = Array.isArray(outcome) ? outcome[0] : outcome.label;
+            if (label !== undefined && label !== null) outcomes.push(String(label));
           } catch {
             break;
           }
@@ -117,6 +122,29 @@ async function processArenaCreated(log: Log) {
         return outcomes;
       })(),
     ]);
+
+    // Try to fetch title + privacy settings from IPFS metadata (try two gateways)
+    let title = `Arena ${arenaAddress.slice(0, 8)}...`;
+    let isPrivate = false;
+    let inviteCode: string | undefined;
+    const gateways = [
+      process.env.IPFS_GATEWAY || 'https://gateway.pinata.cloud/ipfs/',
+      'https://dweb.link/ipfs/',
+    ];
+    for (const gateway of gateways) {
+      try {
+        const res = await fetch(`${gateway}${ipfsCid}`, { signal: AbortSignal.timeout(10000) });
+        if (res.ok) {
+          const meta = await res.json() as { title?: string; isPrivate?: boolean; inviteCode?: string };
+          if (meta?.title) title = meta.title;
+          if (meta?.isPrivate) isPrivate = true;
+          if (meta?.inviteCode) inviteCode = meta.inviteCode.toUpperCase();
+          break;
+        }
+      } catch {
+        // try next gateway
+      }
+    }
 
     // Ensure creator exists
     await prisma.user.upsert({
@@ -128,23 +156,26 @@ async function processArenaCreated(log: Log) {
       },
     });
 
-    // Create arena
+    // Create arena — filter out any stray undefined/null from outcomes
     await prisma.arena.create({
       data: {
         address: arenaAddress.toLowerCase(),
         creatorAddress: creator.toLowerCase(),
-        title: `Arena ${arenaAddress.slice(0, 8)}...`, // Fetch from IPFS in real implementation
+        title,
         ipfsCid,
-        outcomes: outcomesCount as string[],
+        outcomes: (outcomeLabels as string[]).filter((o): o is string => o != null),
         deadline: new Date(Number(deadline) * 1000),
         state: ['OPEN', 'LOCKED', 'RESOLVED', 'CANCELLED'][Number(state)] as any,
         totalPool: BigInt(totalPool as bigint),
         blockNumber: BigInt(blockNumber),
         transactionHash: transactionHash as string,
+        isPrivate,
+        ...(inviteCode && { inviteCode }),
       },
     });
 
-    console.log(`✅ Arena created: ${arenaAddress}`);
+    console.log(`✅ Arena created: ${arenaAddress} — "${title}" [${(outcomeLabels as string[]).join(', ')}]`);
+
   } catch (error) {
     console.error('Error processing ArenaCreated:', error);
   }
@@ -202,22 +233,83 @@ async function processArenaResolved(log: Log, arenaAddress: string) {
     const { args } = log as any;
     const { winningOutcome } = args;
 
-    await prisma.arena.update({
+    const arena = await prisma.arena.update({
       where: { address: arenaAddress.toLowerCase() },
       data: {
         state: 'RESOLVED',
         winningOutcome: Number(winningOutcome),
         resolvedAt: new Date(),
       },
+      include: {
+        stakes: {
+          include: {
+            staker: {
+              select: {
+                fid: true,
+                notificationToken: true,
+                notificationUrl: true,
+                walletAddress: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     console.log(`🏆 Arena resolved: ${arenaAddress} → outcome ${winningOutcome} wins`);
 
-    // TODO: Send notifications to stakers
+    // Send Farcaster notifications to all stakers with tokens
+    const APP_URL = process.env.APP_URL || 'https://stakehub.xyz';
+    const notifications = arena.stakes
+      .filter((s) => s.staker.notificationToken && s.staker.notificationUrl)
+      .map((s) => {
+        const won = s.outcomeIndex === Number(winningOutcome);
+        return {
+          url: s.staker.notificationUrl!,
+          token: s.staker.notificationToken!,
+          title: '⚡ Arena Resolved!',
+          body: won
+            ? `You won! Claim your winnings from "${arena.title}"`
+            : `Arena "${arena.title}" has been resolved`,
+          targetUrl: `${APP_URL}/arena/${arenaAddress}`,
+        };
+      });
+
+    // Deduplicate by notification URL
+    const unique = Array.from(new Map(notifications.map(n => [n.url, n])).values());
+
+    if (unique.length > 0) {
+      console.log(`📤 Sending ${unique.length} notifications...`);
+      await Promise.allSettled(
+        unique.map(async (n) => {
+          try {
+            const res = await fetch(n.url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${n.token}`,
+              },
+              body: JSON.stringify({
+                notificationId: `arena-resolved-${arenaAddress}`,
+                title: n.title,
+                body: n.body,
+                targetUrl: n.targetUrl,
+                tokens: [n.token],
+              }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            console.log(`  ✅ Notified token ${n.token.slice(0, 8)}...`);
+          } catch (err) {
+            console.error(`  ❌ Notification failed:`, err);
+          }
+        })
+      );
+    }
   } catch (error) {
     console.error('Error processing ArenaResolved:', error);
   }
 }
+
 
 /**
  * Process WinningsClaimed event
@@ -273,19 +365,25 @@ async function pollFactoryEvents() {
       return; // No new blocks
     }
 
+    // Cap block range to 90 to stay within Monad's 100-block getLogs limit
+    const MAX_BLOCK_RANGE = 90n;
+    const toBlock = currentBlock < checkpoint.lastBlockNumber + 1n + MAX_BLOCK_RANGE
+      ? currentBlock
+      : checkpoint.lastBlockNumber + MAX_BLOCK_RANGE;
+
     // Fetch ArenaCreated events
     const logs = await client.getLogs({
       address: ARENA_FACTORY_ADDRESS,
       event: parseAbiItem('event ArenaCreated(address indexed arenaAddress, address indexed creator, string ipfsCid, uint256 deadline, uint256 timestamp)'),
       fromBlock: checkpoint.lastBlockNumber + 1n,
-      toBlock: currentBlock,
+      toBlock,
     });
 
     for (const log of logs) {
       await processArenaCreated(log);
     }
 
-    await updateCheckpoint(ARENA_FACTORY_ADDRESS, currentBlock);
+    await updateCheckpoint(ARENA_FACTORY_ADDRESS, toBlock);
   } catch (error) {
     console.error('Error polling factory events:', error);
   }
@@ -309,25 +407,31 @@ async function pollArenaEvents() {
         continue;
       }
 
+      // Cap block range to 90 to stay within Monad's 100-block getLogs limit
+      const MAX_BLOCK_RANGE = 90n;
+      const toBlock = currentBlock < checkpoint.lastBlockNumber + 1n + MAX_BLOCK_RANGE
+        ? currentBlock
+        : checkpoint.lastBlockNumber + MAX_BLOCK_RANGE;
+
       // Fetch all arena events
       const [stakeLogs, resolvedLogs, claimedLogs] = await Promise.all([
         client.getLogs({
           address: arena.address as `0x${string}`,
           event: parseAbiItem('event StakePlaced(address indexed staker, uint8 outcomeIndex, uint256 amount, uint256 timestamp)'),
           fromBlock: checkpoint.lastBlockNumber + 1n,
-          toBlock: currentBlock,
+          toBlock,
         }),
         client.getLogs({
           address: arena.address as `0x${string}`,
           event: parseAbiItem('event ArenaResolved(uint8 winningOutcome, uint256 timestamp)'),
           fromBlock: checkpoint.lastBlockNumber + 1n,
-          toBlock: currentBlock,
+          toBlock,
         }),
         client.getLogs({
           address: arena.address as `0x${string}`,
           event: parseAbiItem('event WinningsClaimed(address indexed winner, uint256 amount)'),
           fromBlock: checkpoint.lastBlockNumber + 1n,
-          toBlock: currentBlock,
+          toBlock,
         }),
       ]);
 
@@ -343,7 +447,8 @@ async function pollArenaEvents() {
         await processWinningsClaimed(log, arena.address);
       }
 
-      await updateCheckpoint(arena.address, currentBlock);
+      await updateCheckpoint(arena.address, toBlock);
+
     }
   } catch (error) {
     console.error('Error polling arena events:', error);

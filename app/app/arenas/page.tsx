@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -17,6 +18,7 @@ interface Arena {
   totalPool: string;
   outcomes: string[];
   deadline: string;
+  isPrivate: boolean;
   creator: {
     username: string | null;
     pfpUrl: string | null;
@@ -53,67 +55,69 @@ export default function ArenasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite">
-      <Navbar />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-5xl font-bold mb-4 uppercase">Prediction Arenas</h1>
-          <p className="text-xl text-gray-800">
-            Stake on social outcomes with instant 0.4s confirmation ⚡
-          </p>
-        </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-offwhite">
+        <Navbar />
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {(['ALL', 'OPEN', 'LOCKED', 'RESOLVED'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`
-                px-6 py-3 font-bold uppercase text-sm border-3 border-black
-                transition-all duration-100
-                ${filter === tab
-                  ? 'bg-yellow brutal-shadow translate-y-[2px]'
-                  : 'bg-white brutal-shadow hover:translate-y-[2px] hover:shadow-brutal-sm'
-                }
-              `}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-5xl font-bold mb-4 uppercase">Prediction Arenas</h1>
+            <p className="text-xl text-gray-800">
+              Stake on social outcomes with instant 0.4s confirmation ⚡
+            </p>
+          </div>
 
-        {/* Arena Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <ArenaCardSkeleton key={i} />
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+            {(['ALL', 'OPEN', 'LOCKED', 'RESOLVED'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`
+                  px-6 py-3 font-bold uppercase text-sm border-3 border-black
+                  transition-all duration-100
+                  ${filter === tab
+                    ? 'bg-yellow brutal-shadow translate-y-[2px]'
+                    : 'bg-white brutal-shadow hover:translate-y-[2px] hover:shadow-brutal-sm'
+                  }
+                `}
+              >
+                {tab}
+              </button>
             ))}
           </div>
-        ) : !arenas || arenas.length === 0 ? (
-          <Card>
-            <CardBody>
-              <div className="text-center py-12">
-                <p className="text-xl mb-6">No arenas found. Be the first to create one!</p>
-                <Link href="/create">
-                  <button className="px-8 py-4 bg-yellow border-4 border-black brutal-shadow font-bold uppercase text-lg hover:translate-x-[2px] hover:translate-y-[2px] transition-transform">
-                    CREATE ARENA →
-                  </button>
-                </Link>
-              </div>
-            </CardBody>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {arenas.map((arena) => (
-              <ArenaCard key={arena.id} arena={arena} />
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+
+          {/* Arena Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <ArenaCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : !arenas || arenas.length === 0 ? (
+            <Card>
+              <CardBody>
+                <div className="text-center py-12">
+                  <p className="text-xl mb-6">No arenas found. Be the first to create one!</p>
+                  <Link href="/create">
+                    <button className="px-8 py-4 bg-yellow border-4 border-black brutal-shadow font-bold uppercase text-lg hover:translate-x-[2px] hover:translate-y-[2px] transition-transform">
+                      CREATE ARENA →
+                    </button>
+                  </Link>
+                </div>
+              </CardBody>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {arenas.map((arena) => (
+                <ArenaCard key={arena.id} arena={arena} />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }
 
@@ -141,9 +145,14 @@ function ArenaCard({ arena }: { arena: Arena }) {
                 @{arena.creator.username || arena.creator.walletAddress.slice(0, 6)}
               </span>
             </div>
-            <Badge variant={arena.state.toLowerCase() as any}>
-              {arena.state}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {arena.isPrivate && (
+                <span className="text-lg" title="Private Arena">🔒</span>
+              )}
+              <Badge variant={arena.state.toLowerCase() as any}>
+                {arena.state}
+              </Badge>
+            </div>
           </div>
           <h3 className="text-2xl font-bold">{arena.title}</h3>
         </CardHeader>
@@ -154,7 +163,7 @@ function ArenaCard({ arena }: { arena: Arena }) {
             {arena.outcomes.slice(0, 2).map((outcome, index) => {
               const amount = outcomeTotals[index] || 0;
               const percentage = totalPool > 0 ? (amount / totalPool) * 100 : 50;
-              
+
               return (
                 <div key={index}>
                   <div className="flex justify-between mb-1">

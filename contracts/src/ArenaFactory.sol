@@ -44,7 +44,7 @@ contract ArenaFactory is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         require(_treasury != address(0), "Invalid treasury");
         
         __Ownable_init(msg.sender);
-        __UUPSUpgradeable_init();
+        // __UUPSUpgradeable_init() removed — no-op in OZ v5
         
         hubToken = HUBToken(_hubToken);
         treasury = _treasury;

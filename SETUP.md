@@ -22,6 +22,12 @@ npx prisma generate
 npx prisma db push
 ```
 
+**Optional: Seed demo data for testing:**
+```bash
+npm run db:seed
+```
+This populates the database with 5 users, 6 arenas, and 19 stakes for demo/testing purposes.
+
 ### 2. Contract Deployment
 
 Deploy contracts to Monad testnet:

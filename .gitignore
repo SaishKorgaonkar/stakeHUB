@@ -48,6 +48,7 @@ prisma/migrations/
 contracts/out/
 contracts/cache/
 contracts/broadcast/
+contracts/lib/
 
 # IDE
 .vscode/

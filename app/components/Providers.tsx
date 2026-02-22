@@ -6,6 +6,7 @@ import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { config } from '@/lib/wagmi';
 import { ReactNode, useState } from 'react';
+import { FarcasterProvider } from '@/lib/farcaster-sdk';
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -22,7 +23,9 @@ export function Providers({ children }: { children: ReactNode }) {
             overlayBlur: 'none',
           })}
         >
-          {children}
+          <FarcasterProvider>
+            {children}
+          </FarcasterProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

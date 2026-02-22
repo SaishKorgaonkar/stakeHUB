@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -80,10 +81,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite">
-      <Navbar />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-offwhite">
+        <Navbar />
 
-      <main className="max-w-5xl mx-auto px-4 py-12">
+        <main className="max-w-5xl mx-auto px-4 py-12">
         {/* Profile Header */}
         <div className="mb-8">
           <div className="flex items-center gap-6 mb-6">
@@ -284,6 +286,6 @@ export default function ProfilePage() {
           </Card>
         )}
       </main>
-    </div>
-  );
+      </div>
+    </ProtectedRoute>  );
 }

@@ -57,13 +57,18 @@ export async function GET(
       return total;
     });
 
-    // Serialize BigInt fields to strings
+    // Serialize BigInt fields — JSON.stringify cannot handle BigInt natively
     const serializedArena = {
       ...arena,
       totalPool: arena.totalPool.toString(),
+      blockNumber: arena.blockNumber.toString(),
+      isPrivate: arena.isPrivate,
+      // Never expose inviteCode publicly — clients use /join to validate
+      inviteCode: undefined,
       stakes: arena.stakes.map(stake => ({
         ...stake,
         amount: stake.amount.toString(),
+        blockNumber: stake.blockNumber.toString(),
       })),
       winnings: arena.winnings.map(winning => ({
         ...winning,

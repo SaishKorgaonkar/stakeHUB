@@ -84,19 +84,27 @@ Alice receives: $100 + \left( \frac{100}{100} \times 500 \right) \times 0.98 = 5
    # Add your Monad RPC URL and Postgres DATABASE_URL
    ```
 
-3. **Deploy Contracts**
+3. **Setup Database**
+   ```bash
+   cd app
+   npx prisma generate
+   npx prisma db push
+   npm run db:seed  # Optional: Add demo data for testing
+   ```
+
+4. **Deploy Contracts**
    ```bash
    cd contracts
    forge script script/Deploy.s.sol --rpc-url monad_testnet --broadcast
    ```
 
-4. **Run Indexer**
+5. **Run Indexer**
    ```bash
    cd indexer
    npm run dev
    ```
 
-5. **Start Frontend**
+6. **Start Frontend**
    ```bash
    cd app
    npm run dev

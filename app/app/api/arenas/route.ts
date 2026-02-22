@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const querySchema = z.object({
-  state: z.enum(['OPEN', 'LOCKED', 'RESOLVED', 'CANCELLED']).optional(),
-  creator: z.string().optional(),
+  state: z.enum(['OPEN', 'LOCKED', 'RESOLVED', 'CANCELLED']).nullable().optional(),
+  creator: z.string().nullable().optional(),
   limit: z.string().transform(Number).default('20'),
   offset: z.string().transform(Number).default('0'),
 });
@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
     const serializedArenas = arenas.map(arena => ({
       ...arena,
       totalPool: arena.totalPool.toString(),
+      blockNumber: arena.blockNumber.toString(),
       stakes: arena.stakes.map(stake => ({
         ...stake,
         amount: stake.amount.toString(),

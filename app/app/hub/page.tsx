@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -131,10 +132,11 @@ export default function HUBTokenPage() {
   };
 
   return (
-    <div className="min-h-screen bg-offwhite">
-      <Navbar />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-offwhite">
+        <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 py-12">
+        <main className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-4 uppercase">Get $HUB Tokens</h1>
@@ -372,6 +374,7 @@ export default function HUBTokenPage() {
           </CardBody>
         </Card>
       </main>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

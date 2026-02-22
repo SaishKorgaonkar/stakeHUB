@@ -30,10 +30,23 @@ npx prisma generate
 npx prisma db push
 ```
 
+### Seed Demo Data (Optional but Recommended)
+For demos and testing, populate the database with sample arenas and users:
+```bash
+npm run db:seed
+```
+
+This creates:
+- 5 demo users (keone, eunice, vitalik, anon_trader, alice)
+- 6 arenas in various states (OPEN, LOCKED, RESOLVED)
+- 19 stakes across all arenas
+- Realistic reputation data
+
 **Verification:**
 ```bash
 npx prisma studio
 # Should open database viewer at localhost:5555
+# Check Users and Arena tables for seeded data
 ```
 
 ---

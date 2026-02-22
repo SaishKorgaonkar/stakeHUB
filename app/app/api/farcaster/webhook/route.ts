@@ -28,21 +28,60 @@ export async function POST(request: NextRequest) {
 
     switch (type) {
       case 'miniapp_added':
-        // User added the Mini App - associate FID with wallet
-        console.log('Mini App added by FID:', data.fid);
+        // User added Mini App — upsert User with FID and store notification token if provided
+        await prisma.user.upsert({
+          where: { fid: data.fid },
+          update: {
+            username: data.username,
+            ...(data.notificationDetails && {
+              notificationToken: data.notificationDetails.token,
+              notificationUrl: data.notificationDetails.url,
+            }),
+          },
+          create: {
+            // walletAddress is required but unknown at this point — use fid as placeholder
+            // It will be updated when the user connects their wallet
+            walletAddress: `fid:${data.fid}`,
+            fid: data.fid,
+            username: data.username,
+            ...(data.notificationDetails && {
+              notificationToken: data.notificationDetails.token,
+              notificationUrl: data.notificationDetails.url,
+            }),
+          },
+        });
+        console.log(`✅ Mini App added by FID ${data.fid} — user upserted`);
         break;
 
       case 'notifications_enabled':
-        // Store notification token
+        // Store notification token for existing user
         if (data.notificationDetails) {
-          await prisma.user.updateMany({
+          const updated = await prisma.user.updateMany({
             where: { fid: data.fid },
             data: {
               notificationToken: data.notificationDetails.token,
               notificationUrl: data.notificationDetails.url,
             },
           });
-          console.log('Notifications enabled for FID:', data.fid);
+
+          // If no user found by FID yet, create a placeholder
+          if (updated.count === 0) {
+            await prisma.user.upsert({
+              where: { fid: data.fid },
+              update: {
+                notificationToken: data.notificationDetails.token,
+                notificationUrl: data.notificationDetails.url,
+              },
+              create: {
+                walletAddress: `fid:${data.fid}`,
+                fid: data.fid,
+                notificationToken: data.notificationDetails.token,
+                notificationUrl: data.notificationDetails.url,
+              },
+            });
+          }
+
+          console.log(`🔔 Notifications enabled for FID ${data.fid}`);
         }
         break;
 
@@ -55,7 +94,7 @@ export async function POST(request: NextRequest) {
             notificationUrl: null,
           },
         });
-        console.log('Notifications disabled for FID:', data.fid);
+        console.log(`🔕 Notifications disabled for FID ${data.fid}`);
         break;
     }
 

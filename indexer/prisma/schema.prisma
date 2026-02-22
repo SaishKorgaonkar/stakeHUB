@@ -47,12 +47,27 @@ model Arena {
   winnings            Winnings[]
   blockNumber         BigInt
   transactionHash     String
+  isPrivate           Boolean  @default(false)
+  inviteCode          String?  @unique
+  invites             ArenaInvite[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
   @@index([state])
   @@index([creatorAddress])
   @@index([createdAt])
+}
+
+model ArenaInvite {
+  id           String   @id @default(cuid())
+  arenaAddress String
+  arena        Arena    @relation(fields: [arenaAddress], references: [address])
+  userAddress  String
+  redeemedAt   DateTime @default(now())
+
+  @@unique([arenaAddress, userAddress])
+  @@index([arenaAddress])
+  @@index([userAddress])
 }
 
 model Stake {
