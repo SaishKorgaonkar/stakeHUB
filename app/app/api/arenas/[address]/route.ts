@@ -50,7 +50,7 @@ export async function GET(
     }
 
     // Calculate outcome totals
-    const outcomeTotals = arena.outcomes.map((_, index) => {
+    const outcomeTotals = arena.outcomes.map((_: string, index: number) => {
       const total = arena.stakes
         .filter((s) => s.outcomeIndex === index)
         .reduce((sum, s) => sum + Number(s.amount), 0);
