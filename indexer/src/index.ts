@@ -32,8 +32,9 @@ const client = createPublicClient({
 const ARENA_FACTORY_ADDRESS = process.env.ARENA_FACTORY_ADDRESS as `0x${string}`;
 const HUB_TOKEN_ADDRESS = process.env.HUB_TOKEN_ADDRESS as `0x${string}`;
 
-// Polling interval (400ms for Monad's 0.4s block time)
-const POLL_INTERVAL = 400;
+// Polling interval — Monad public RPC limits to 25 req/sec.
+// 2 getLogs calls per poll × 1 poll/3s = ~0.7 req/sec, well under the cap.
+const POLL_INTERVAL = 3000;
 
 /**
  * Get or create indexer checkpoint
