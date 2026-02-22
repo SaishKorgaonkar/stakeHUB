@@ -65,8 +65,18 @@ export async function GET(request: NextRequest) {
       prisma.arena.count({ where }),
     ]);
 
+    // Convert BigInt fields to strings for JSON serialization
+    const serializedArenas = arenas.map(arena => ({
+      ...arena,
+      totalPool: arena.totalPool.toString(),
+      stakes: arena.stakes.map(stake => ({
+        ...stake,
+        amount: stake.amount.toString(),
+      })),
+    }));
+
     return NextResponse.json({
-      arenas,
+      arenas: serializedArenas,
       total,
       limit: query.limit,
       offset: query.offset,

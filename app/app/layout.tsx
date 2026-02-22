@@ -16,14 +16,22 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'StakeHub - SocialFi Prediction Markets on Monad',
-  description: 'Bet on social outcomes with instant 0.4s confirmation on Monad',
+  title: 'StakeHub - The Social Staking Arena',
+  description: 'The first Social Staking protocol built for Monad. Stake on outcomes, build reputation, win together.',
+  keywords: ['Monad', 'Farcaster', 'Social Staking', 'Prediction Markets', 'Parimutuel', 'DeFi', 'SocialFi'],
   icons: {
     icon: '/icon.png',
   },
   openGraph: {
-    title: 'StakeHub Arena',
-    description: 'Parimutuel staking on Monad',
+    title: 'StakeHub - The Social Staking Arena',
+    description: 'Built for the Monad speed-run. 0.4s blocks, social-first identity, portable reputation.',
+    images: ['/og-image.png'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'StakeHub - The Social Staking Arena',
+    description: 'The first Social Staking protocol built for Monad. Stake. Watch. Win.',
     images: ['/og-image.png'],
   },
   other: {
@@ -31,7 +39,7 @@ export const metadata: Metadata = {
       version: 'next',
       imageUrl: `${process.env.NEXT_PUBLIC_APP_URL}/og-image.png`,
       button: {
-        title: 'Stake Now',
+        title: 'Enter the Arena',
         action: {
           type: 'launch_miniapp',
           url: process.env.NEXT_PUBLIC_APP_URL,

@@ -21,7 +21,13 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ user: existingUser });
+      return NextResponse.json({ 
+        user: {
+          ...existingUser,
+          totalWon: existingUser.totalWon.toString(),
+          totalStaked: existingUser.totalStaked.toString(),
+        }
+      });
     }
 
     // Create new user
@@ -35,7 +41,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ user }, { status: 201 });
+    return NextResponse.json({ 
+      user: {
+        ...user,
+        totalWon: user.totalWon.toString(),
+        totalStaked: user.totalStaked.toString(),
+      }
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json(

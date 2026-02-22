@@ -57,11 +57,23 @@ export async function GET(
       return total;
     });
 
+    // Serialize BigInt fields to strings
+    const serializedArena = {
+      ...arena,
+      totalPool: arena.totalPool.toString(),
+      stakes: arena.stakes.map(stake => ({
+        ...stake,
+        amount: stake.amount.toString(),
+      })),
+      winnings: arena.winnings.map(winning => ({
+        ...winning,
+        amount: winning.amount.toString(),
+      })),
+      outcomeTotals,
+    };
+
     return new Response(
-      JSON.stringify({
-        ...arena,
-        outcomeTotals,
-      }),
+      JSON.stringify(serializedArena),
       {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

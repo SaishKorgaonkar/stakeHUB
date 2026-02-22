@@ -43,15 +43,29 @@ export async function GET(
 
     // Create user if doesn't exist
     if (!user) {
-      user = await prisma.user.create({
+      const newUser = await prisma.user.create({
         data: {
           walletAddress: address.toLowerCase(),
         },
-        include: {
-          stakes: true,
-          createdArenas: true,
-        },
       });
+
+      // Return new user with empty stakes/arenas
+      return new Response(
+        JSON.stringify({
+          ...newUser,
+          totalWon: newUser.totalWon.toString(),
+          totalStaked: newUser.totalStaked.toString(),
+          stakes: [],
+          createdArenas: [],
+          wins: 0,
+          losses: 0,
+          pending: 0,
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Calculate win/loss record
@@ -65,8 +79,23 @@ export async function GET(
       (s) => s.outcomeIndex !== s.arena.winningOutcome
     ).length;
 
-    return NextResponse.json({
+    // Convert BigInt fields to strings for JSON serialization
+    const serializedUser = {
       ...user,
+      totalWon: user.totalWon.toString(),
+      totalStaked: user.totalStaked.toString(),
+      stakes: user.stakes.map(stake => ({
+        ...stake,
+        amount: stake.amount.toString(),
+      })),
+      createdArenas: user.createdArenas.map(arena => ({
+        ...arena,
+        totalPool: arena.totalPool.toString(),
+      })),
+    };
+
+    return NextResponse.json({
+      ...serializedUser,
       stats: {
         wins,
         losses,
