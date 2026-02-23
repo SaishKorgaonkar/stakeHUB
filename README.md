@@ -216,13 +216,4 @@ The result: A social staking experience that feels instant, transparent, and gen
 
 ---
 
-## 🔗 Links
-
-- **Website:** [stakehub.xyz](https://stakehub.xyz)
-- **Docs:** [docs.stakehub.xyz](https://docs.stakehub.xyz)
-- **Warpcast:** [@stakehub](https://warpcast.com/stakehub)
-- **Twitter:** [@StakeHub_xyz](https://twitter.com/StakeHub_xyz)
-
----
-
 **The Social Staking Arena. Built on Monad. 🏟️**
